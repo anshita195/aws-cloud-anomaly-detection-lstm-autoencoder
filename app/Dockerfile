@@ -14,7 +14,7 @@ COPY models/ /models/
 
 # 4. Install dependencies
 # We install torch, fastapi, and others needed for inference
-RUN pip install torch numpy pandas fastapi uvicorn pydantic scikit-learn
+RUN pip install torch numpy pandas fastapi uvicorn pydantic scikit-learn prometheus-fastapi-instrumentator python-json-logger
 
 # 5. Expose the port so we can access the API
 EXPOSE 8000

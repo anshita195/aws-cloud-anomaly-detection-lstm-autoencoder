@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  # 1. Your Deep Learning API
+  api:
+    build: 
+      context: .
+      dockerfile: app/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/models  # Mount models so we can update them without rebuilding
+    environment:
+      - ENV=production
+
+  # 2. Prometheus (The Database that stores metrics)
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+
+  # 3. Grafana (The Dashboard)
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
