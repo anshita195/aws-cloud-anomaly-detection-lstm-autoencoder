@@ -5,6 +5,8 @@ from pydantic import BaseModel
 from typing import List
 import sys
 import os
+import logging
+logging.basicConfig(filename='inference.log', level=logging.INFO)
 
 # Allow importing from src
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
@@ -55,7 +57,7 @@ def predict(data: CPUSequence):
         loss = torch.nn.MSELoss()(reconstruction, input_tensor).item()
     
     is_anomaly = loss > THRESHOLD
-    
+    logging.info(f"Input processed. Loss: {loss} | Anomaly: {is_anomaly}")
     return {
         "reconstruction_error": round(loss, 6),
         "threshold": THRESHOLD,
