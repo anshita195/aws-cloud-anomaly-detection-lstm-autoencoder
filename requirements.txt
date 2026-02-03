@@ -1,0 +1,11 @@
+torch
+numpy
+pandas
+matplotlib
+seaborn
+scikit-learn
+fastapi
+uvicorn
+pydantic
+prometheus-fastapi-instrumentator
+python-json-logger
