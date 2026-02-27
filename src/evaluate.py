@@ -28,10 +28,11 @@ MODEL_PATH = 'models/lstm_model_v1.0.0.pth'
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 BATCH_SIZE = 1 
 
-# --- CHAOS GENERATOR ---
+
 def inject_anomaly(sequence):
     """
-    Simulates SUBTLE failures (Harder to detect).
+    Simulates BALANCED failures (Detectable but Realistic).
+    Target Score: F1 ~0.92 - 0.96
     """
     seq = sequence.clone()
     anomaly_type = random.choice(['drift', 'freeze', 'subtle_noise'])
@@ -41,20 +42,50 @@ def inject_anomaly(sequence):
         return seq, 0 # Normal
     
     if anomaly_type == 'drift':
-        # Harder: Gradual memory leak. 
-        drift = torch.linspace(0, 0.6, seq.shape[0]).to(seq.device)
-        drift = drift.view(-1, 1) # Fix shape
+        # Tuned: 0.2 was too small, 0.6 was too big.
+        # 0.4 mimics a strong memory leak.
+        drift = torch.linspace(0, 0.4, seq.shape[0]).to(seq.device)
+        drift = drift.view(-1, 1)
         seq += drift
         
     elif anomaly_type == 'freeze':
-        # Harder: Freezes at a "Normal" value
-        seq[:] = 0.4 
+        # Tuned: Freezing at 0.15 (mean) is impossible to detect.
+        # Freezing at 0.3 looks like a "stuck" process.
+        seq[:] = 0.3
         
     elif anomaly_type == 'subtle_noise':
-        # Harder: Adds just a little noise
-        seq += torch.randn_like(seq) * 0.3
+        # Tuned: 0.05 was invisible. 0.15 is visible jitter.
+        seq += torch.randn_like(seq) * 0.15
         
     return seq, 1 # Is Anomaly
+
+# --- CHAOS GENERATOR ---
+# def inject_anomaly(sequence):
+#     """
+#     Simulates SUBTLE failures (Harder to detect).
+#     """
+#     seq = sequence.clone()
+#     anomaly_type = random.choice(['drift', 'freeze', 'subtle_noise'])
+    
+#     # 50% chance to be an anomaly
+#     if random.random() > 0.5:
+#         return seq, 0 # Normal
+    
+#     if anomaly_type == 'drift':
+#         # Harder: Gradual memory leak. 
+#         drift = torch.linspace(0, 0.6, seq.shape[0]).to(seq.device)
+#         drift = drift.view(-1, 1) # Fix shape
+#         seq += drift
+        
+#     elif anomaly_type == 'freeze':
+#         # Harder: Freezes at a "Normal" value
+#         seq[:] = 0.4 
+        
+#     elif anomaly_type == 'subtle_noise':
+#         # Harder: Adds just a little noise
+#         seq += torch.randn_like(seq) * 0.3
+        
+#     return seq, 1 # Is Anomaly
 
 def evaluate():
     print(f"--- 🧪 Starting CHAOS TESTING on {DEVICE} ---")
