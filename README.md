@@ -1,8 +1,7 @@
-# AWS Cloud Anomaly Detection (DeepGuard)
+# AWS Cloud Anomaly Detection
 
 **A Production-Grade MLOps System for Unsupervised Cloud Infrastructure Monitoring.**
 
-![Evaluation Report](Evaluation_Report.png)
 
 ## 1. Problem Statement & Business Value
 **The Challenge:**
@@ -30,6 +29,8 @@ We use a dynamic threshold of **Mean + 2σ** (Standard Deviations) based on the 
 
 ### Classification Metrics (Proxy)
 *Precision, Recall, and F1 scores are calculated in `evaluate.py` using statistical outliers (Top 5% quantile) as proxy ground-truth labels.*
+
+![Evaluation Report](Evaluation_Report.png)
 
 ## 4. Known Limitations
 1.  **Unsupervised Nature:** The model is trained on "assumed normal" data. If the training data contains contamination (anomalies), the model may learn to accept them as normal.
