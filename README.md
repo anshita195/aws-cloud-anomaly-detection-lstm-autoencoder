@@ -1,7 +1,5 @@
 # AWS Cloud Anomaly Detection
 
-**A Production-Grade MLOps System for Unsupervised Cloud Infrastructure Monitoring.**
-
 
 ## 1. Problem Statement & Business Value
 **The Challenge:**
