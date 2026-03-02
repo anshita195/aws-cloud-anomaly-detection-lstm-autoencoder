@@ -8,7 +8,7 @@ Modern cloud infrastructure generates millions of metric data points. Traditiona
 2.  **False Positives:** Triggering alerts for normal, high-load spikes (Alert Fatigue).
 
 **The Solution:**
-DeepGuard utilizes an **Unsupervised LSTM Autoencoder** to learn the complex, temporal "normal" behavior of EC2 instances. It flags anomalies based on **reconstruction error**—if the model cannot reconstruct the input sequence, the behavior is anomalous.
+We use an **Unsupervised LSTM Autoencoder** to learn the complex, temporal "normal" behavior of EC2 instances. It flags anomalies based on **reconstruction error**—if the model cannot reconstruct the input sequence, the behavior is anomalous.
 
 ## 2. Architecture
 * **Model:** PyTorch LSTM Autoencoder (Encoder-Decoder architecture).
