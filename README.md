@@ -2,52 +2,56 @@
 
 ## Overview
 
-This is a production-grade MLOps system designed for unsupervised monitoring of cloud infrastructure. It utilizes an LSTM Autoencoder architecture to learn baseline temporal patterns in AWS EC2 CPU utilization and identifies anomalies through reconstruction error analysis.
+This is a production-grade MLOps system developed for unsupervised monitoring of cloud infrastructure. It utilizes an LSTM Autoencoder architecture to learn baseline temporal patterns in AWS EC2 CPU utilization and identifies anomalies through reconstruction error analysis.
 
 ## Core Engineering Features
 
-* **Unsupervised Learning**: Employs an encoder-decoder LSTM to learn normal server behavior without requiring labeled historical anomaly data.
-* **Chaos Engineering Validation**: Includes an integrated chaos generator to stress-test the model against simulated infrastructure failures such as memory leaks, process hangs, and sensor degradation.
-* **MLOps Architecture**: Utilizes a professional directory structure that separates production API code, core model logic, and serialized artifacts.
-* **Real-time Observability**: Fully instrumented with Prometheus and Grafana for production-level monitoring and alerting.
+* **Unsupervised Temporal Learning**: Employs an encoder-decoder LSTM to learn normal server behavior without requiring labeled historical anomaly data.
+* **Integrated Training Pipeline**: The training process is optimized with early stopping to prevent overfitting, automated checkpointing to save only the best model version, and loss history tracking for convergence verification.
+* **Chaos Engineering Validation**: Includes a dedicated chaos generator to stress-test detection capabilities against simulated infrastructure failures such as memory leaks (drift), process hangs (freeze), and sensor degradation (noise).
+* **Production-Ready Observability**: Fully instrumented with Prometheus and Grafana for real-time production monitoring and automated alerting.
 
 ## System Architecture
 
-The model utilizes a PyTorch-based LSTM Autoencoder. A sequence of 50 CPU utilization data points is compressed into a 12-unit latent space by the encoder and subsequently reconstructed by the decoder.
+The model utilizes a PyTorch-based LSTM Autoencoder where a sequence of 50 CPU utilization data points is compressed into a 12-unit latent space and subsequently reconstructed.
 
-* **Reconstruction Logic**: Anomalies are detected when the Mean Squared Error (MSE) between the input and reconstructed sequence exceeds a dynamic statistical threshold.
-* **Temporal Integrity Proof**: The system includes validation logic to prove that the LSTM enforces temporal continuity rather than simple data memorization.
+* **Detection Logic**: Anomalies are flagged when the Mean Squared Error (MSE) between the input and reconstructed sequence exceeds a dynamic statistical threshold.
+* **Temporal Integrity Verification**: The system includes specific validation logic to confirm the model captures temporal continuity rather than simple data memorization.
 
 ## Reliability and Validation
 
-To ensure production readiness, the model is subjected to rigorous reliability testing rather than relying on standard accuracy metrics.
+To ensure operational readiness, the model is subjected to rigorous reliability testing rather than relying on standard accuracy metrics.
 
 ### Chaos Injection Suite
 
-The `src/evaluate.py` script simulates specific infrastructure failure modes to verify detection robustness:
+The evaluation suite simulates specific infrastructure failure modes to verify detection robustness:
 
-* **Drift**: Simulates gradual resource exhaustion or memory leaks.
-* **Freeze**: Simulates hung processes by forcing static metric values.
-* **Noise**: Simulates hardware degradation through high-variance jitter.
+* **Drift**: Simulates gradual resource exhaustion or creeping memory leaks.
+* **Freeze**: Simulates hung processes or sensor failures by forcing static metric values.
+* **Noise**: Simulates hardware degradation or communication jitter.
 
-### Performance Results
+### Performance Benchmarks
 
-The system is tuned using a 1.8-Sigma dynamic threshold to balance sensitivity with operational reliability. This configuration prioritizes high precision to minimize alert fatigue for DevOps teams. Detailed performance artifacts are stored in `metrics.json` upon evaluation.
+The system is tuned using a 1.8-Sigma dynamic threshold to balance sensitivity with operational reliability. This configuration prioritizes high precision to minimize alert fatigue for DevOps teams.
+
+* **Precision**: 0.8493
+* **Recall**: 0.6425
+* **F1-Score**: 0.7316
 
 ## MLOps and Observability
 
-The project is containerized and orchestrated to provide a complete monitoring solution.
+The project is fully containerized and orchestrated to provide a complete infrastructure monitoring solution.
 
 ### Components
 
-* **Inference API**: A FastAPI-based service providing a high-performance `/predict` endpoint for real-time anomaly detection.
+* **Inference API**: A FastAPI service providing a high-performance `/predict` endpoint for real-time anomaly detection.
 * **Prometheus**: Collects real-time metrics including `deepguard_anomalies_total` and `deepguard_reconstruction_error`.
-* **Grafana**: Provides a visual dashboard for monitoring infrastructure health and anomaly occurrences.
-* **Docker Compose**: Orchestrates the API, database, and visualization layers for one-click deployment.
+* **Grafana**: Provides visual dashboards for monitoring infrastructure health and anomaly occurrences.
+* **Docker Compose**: Orchestrates the API, monitoring, and visualization layers for standardized deployment.
 
 ## Getting Started
 
-### Installation
+### Installation and Local Execution
 
 1. Clone the repository and install dependencies:
 ```bash
@@ -56,7 +60,7 @@ pip install -r requirements.txt
 ```
 
 
-2. Train the model:
+2. Train the model with integrated utilities (Early Stopping, Best-Model Checkpointing):
 ```bash
 python src/main.py
 
@@ -71,13 +75,13 @@ python src/evaluate.py
 
 
 
-### Docker Deployment
+### Production Deployment
 
-Launch the complete monitoring stack:
+Launch the complete monitoring stack via Docker Compose:
 
 ```bash
 docker-compose up --build
 
 ```
 
-The API documentation can be accessed at `http://localhost:8000/docs`.
+The API documentation and `/predict` endpoint will be available at `http://localhost:8000/docs`.
