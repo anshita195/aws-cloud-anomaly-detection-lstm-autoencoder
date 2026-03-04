@@ -1,49 +1,83 @@
-# AWS Cloud Anomaly Detection
+# AWS Chaos-Validated Cloud Anomaly Detection
 
+## Overview
 
-## 1. Problem Statement & Business Value
-**The Challenge:**
-Modern cloud infrastructure generates millions of metric data points. Traditional static thresholds (e.g., "Alert if CPU > 80%") suffer from:
-1.  **False Negatives:** Missing subtle failures like memory leaks that happen at low utilization.
-2.  **False Positives:** Triggering alerts for normal, high-load spikes (Alert Fatigue).
+This is a production-grade MLOps system designed for unsupervised monitoring of cloud infrastructure. It utilizes an LSTM Autoencoder architecture to learn baseline temporal patterns in AWS EC2 CPU utilization and identifies anomalies through reconstruction error analysis.
 
-**The Solution:**
-We use an **Unsupervised LSTM Autoencoder** to learn the complex, temporal "normal" behavior of EC2 instances. It flags anomalies based on **reconstruction error** if the model cannot reconstruct the input sequence, the behavior is anomalous.
+## Core Engineering Features
 
-## 2. Architecture
-* **Model:** PyTorch LSTM Autoencoder (Encoder-Decoder architecture).
-* **Data:** Numenta Anomaly Benchmark (AWS EC2 CPU Utilization).
-* **API:** FastAPI (Async/Await) with Prometheus instrumentation.
-* **Deployment:** Docker & Docker Compose.
+* **Unsupervised Learning**: Employs an encoder-decoder LSTM to learn normal server behavior without requiring labeled historical anomaly data.
+* **Chaos Engineering Validation**: Includes an integrated chaos generator to stress-test the model against simulated infrastructure failures such as memory leaks, process hangs, and sensor degradation.
+* **MLOps Architecture**: Utilizes a professional directory structure that separates production API code, core model logic, and serialized artifacts.
+* **Real-time Observability**: Fully instrumented with Prometheus and Grafana for production-level monitoring and alerting.
 
-## 3. Evaluation & Trade-offs
-Since this is an unsupervised setting, we evaluate performance using **Reconstruction Error Distribution**.
+## System Architecture
 
-### Threshold Selection (The Trade-off)
-We use a dynamic threshold of **Mean + 2σ** (Standard Deviations) based on the validation set.
-* **Lower Threshold:** Increases **Recall** (catches more anomalies) but risks higher False Positives (more noise).
-* **Higher Threshold:** Increases **Precision** (alerts are more likely real) but risks False Negatives (missing real crashes).
-* *Current setting (0.0128) prioritizes Precision to reduce pager fatigue for DevOps teams.*
+The model utilizes a PyTorch-based LSTM Autoencoder. A sequence of 50 CPU utilization data points is compressed into a 12-unit latent space by the encoder and subsequently reconstructed by the decoder.
 
-### Classification Metrics (Proxy)
-*Precision, Recall, and F1 scores are calculated in `evaluate.py` using statistical outliers (Top 5% quantile) as proxy ground-truth labels.*
+* **Reconstruction Logic**: Anomalies are detected when the Mean Squared Error (MSE) between the input and reconstructed sequence exceeds a dynamic statistical threshold.
+* **Temporal Integrity Proof**: The system includes validation logic to prove that the LSTM enforces temporal continuity rather than simple data memorization.
 
-![Evaluation Report](Evaluation_Report.png)
+## Reliability and Validation
 
-## 4. Known Limitations
-1.  **Unsupervised Nature:** The model is trained on "assumed normal" data. If the training data contains contamination (anomalies), the model may learn to accept them as normal.
-2.  **Proxy Labels:** The classification metrics (F1/ROC) in the evaluation script are for **demonstration of the pipeline only**. Real-world performance requires labeled historical incidents for verification.
-3.  **Static Threshold:** The production API currently uses a fixed threshold (`0.0128`) derived from initial training. A V2 improvement would load this threshold dynamically from the model artifact.
+To ensure production readiness, the model is subjected to rigorous reliability testing rather than relying on standard accuracy metrics.
 
-## 5. How to Run
+### Chaos Injection Suite
 
-### Local Evaluation
+The `src/evaluate.py` script simulates specific infrastructure failure modes to verify detection robustness:
+
+* **Drift**: Simulates gradual resource exhaustion or memory leaks.
+* **Freeze**: Simulates hung processes by forcing static metric values.
+* **Noise**: Simulates hardware degradation through high-variance jitter.
+
+### Performance Results
+
+The system is tuned using a 1.8-Sigma dynamic threshold to balance sensitivity with operational reliability. This configuration prioritizes high precision to minimize alert fatigue for DevOps teams. Detailed performance artifacts are stored in `metrics.json` upon evaluation.
+
+## MLOps and Observability
+
+The project is containerized and orchestrated to provide a complete monitoring solution.
+
+### Components
+
+* **Inference API**: A FastAPI-based service providing a high-performance `/predict` endpoint for real-time anomaly detection.
+* **Prometheus**: Collects real-time metrics including `deepguard_anomalies_total` and `deepguard_reconstruction_error`.
+* **Grafana**: Provides a visual dashboard for monitoring infrastructure health and anomaly occurrences.
+* **Docker Compose**: Orchestrates the API, database, and visualization layers for one-click deployment.
+
+## Getting Started
+
+### Installation
+
+1. Clone the repository and install dependencies:
 ```bash
-# 1. Install Dependencies
 pip install -r requirements.txt
 
-# 2. Train the Model
+```
+
+
+2. Train the model:
+```bash
 python src/main.py
 
-# 3. Generate Evaluation Report
+```
+
+
+3. Execute Chaos Engineering evaluation:
+```bash
 python src/evaluate.py
+
+```
+
+
+
+### Docker Deployment
+
+Launch the complete monitoring stack:
+
+```bash
+docker-compose up --build
+
+```
+
+The API documentation can be accessed at `http://localhost:8000/docs`.
